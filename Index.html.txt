@@ -1,0 +1,279 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lost-Media.Co | Ironclad v40</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+    <style>
+        body { background-color: #0b0f1a; color: #f8fafc; font-family: 'Inter', sans-serif; font-size: 14px; letter-spacing: -0.01em; }
+        .glass-card { background: #161d2f; border: 1px solid #2d3748; border-radius: 12px; }
+        .chatter-pill { cursor: pointer; transition: all 0.2s; border: 1px solid #334155; background: #1e293b; font-size: 11px; font-weight: 700; }
+        .chatter-pill:hover { background: #e11d48; border-color: #fb7185; }
+        .locked-group { border: 2px solid #e11d48 !important; background: rgba(225, 29, 72, 0.1); }
+        .brand-text { font-size: 28px; font-weight: 900; letter-spacing: -0.04em; text-transform: uppercase; }
+        .text-model-name { font-size: 16px; font-weight: 800; color: #f43f5e; text-transform: uppercase; }
+        .text-revenue-big { font-size: 26px; font-weight: 800; color: #10b981; font-family: 'JetBrains Mono', monospace; }
+        .text-goal-label { font-size: 14px; font-weight: 800; color: #ffffff; text-transform: uppercase; letter-spacing: 0.05em; }
+        .type-icon { font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 900; }
+        .type-tip { background: rgba(244, 63, 94, 0.2); color: #f43f5e; border: 1px solid #f43f5e; }
+        .type-msg { background: rgba(59, 130, 246, 0.2); color: #3b82f6; border: 1px solid #3b82f6; }
+        .staff-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(440px, 1fr)); gap: 20px; }
+        .session-badge { background: #1e293b; border: 1px solid #334155; color: #94a3b8; font-size: 11px; padding: 6px 14px; border-radius: 8px; font-weight: 700; }
+        .switch { position: relative; display: inline-block; width: 44px; height: 20px; }
+        .switch input { opacity: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #334155; transition: .4s; border-radius: 20px; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #f43f5e; }
+        input:checked + .slider:before { transform: translateX(24px); }
+    </style>
+</head>
+<body class="p-4 lg:p-8">
+
+    <div class="max-w-[1800px] mx-auto mb-8">
+        <div class="flex flex-col xl:flex-row justify-between items-center gap-6 bg-slate-900/80 p-5 rounded-2xl border border-slate-800 shadow-2xl backdrop-blur-md">
+            <div class="flex items-center gap-6">
+                <h1 class="brand-text text-white">LOST-<span class="text-rose-600">MEDIA.CO</span></h1>
+                <div id="sessionStatus" class="session-badge">RECOVERING...</div>
+            </div>
+            
+            <div class="flex-1 max-w-lg relative">
+                <input type="text" id="globalSearch" onkeyup="handleSearch(event)" placeholder="Search anything..." class="w-full bg-[#0b0f1a] border-2 border-[#334155] rounded-xl p-3.5 text-sm font-semibold text-white focus:border-rose-500 outline-none transition-all">
+            </div>
+
+            <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2 bg-black/40 px-4 py-2 rounded-xl border border-white/5">
+                    <span class="text-[10px] font-bold uppercase text-slate-400">Leak</span>
+                    <label class="switch"><input type="checkbox" id="unassignedToggle" onchange="renderAll(); saveToStorage();"><span class="slider"></span></label>
+                </div>
+                <div class="flex bg-slate-800/50 p-1.5 rounded-xl border border-slate-700">
+                    <button onclick="exportSnapshot()" title="Save Export" class="p-2.5 hover:bg-white/10 rounded-lg text-rose-400">💾</button>
+                    <button onclick="document.getElementById('setupInput').click()" title="Load Import" class="p-2.5 hover:bg-white/10 rounded-lg text-emerald-400">📥</button>
+                    <input type="file" id="setupInput" accept=".json" class="hidden" onchange="importSnapshot(event)">
+                </div>
+                <input type="file" id="csvInput" accept=".csv" class="hidden">
+                <button onclick="document.getElementById('csvInput').click()" class="bg-emerald-600 px-5 py-2.5 rounded-xl font-bold text-[11px] text-white uppercase tracking-wider transition-all shadow-lg shadow-emerald-900/20">📂 Load Sales</button>
+                <button onclick="clearEverything()" class="bg-slate-800 hover:bg-rose-600 px-4 py-2.5 rounded-xl font-bold text-[11px] text-white uppercase transition-all">Reset</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-[1800px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div class="lg:col-span-3 space-y-6">
+            <div class="glass-card p-6">
+                <h2 class="text-rose-500 font-black text-[11px] uppercase mb-4 tracking-widest">Shift Targets</h2>
+                <textarea id="masterTargetInput" oninput="parseMasterTargets()" class="w-full h-28 bg-black/40 border border-slate-700 p-3 text-xs font-mono text-emerald-400 rounded-xl outline-none focus:border-emerald-500 transition-all" placeholder="Model @Account $Amount"></textarea>
+            </div>
+            <div class="glass-card p-6">
+                <div class="flex justify-between items-center mb-4"><h2 class="text-white font-black text-[11px] uppercase tracking-widest">Managers</h2><button onclick="addGroup()" class="text-rose-500 text-[10px] font-black">+ ADD NEW</button></div>
+                <div id="groupList" class="space-y-2.5"></div>
+            </div>
+            <div class="glass-card p-6">
+                <h2 class="text-white font-black text-[11px] uppercase mb-4 tracking-widest">Staff Pool</h2>
+                <input type="text" id="poolSearch" onkeyup="renderPool()" placeholder="Filter name..." class="w-full bg-[#0b0f1a] border border-[#334155] p-2.5 text-xs rounded-xl mb-3 text-white outline-none focus:border-rose-500">
+                <div id="chatterPool" class="flex flex-wrap gap-1.5 max-h-[350px] overflow-y-auto"></div>
+            </div>
+        </div>
+        <div class="lg:col-span-9" id="reportArea"></div>
+    </div>
+
+    <script>
+        let rawData = [];
+        let chattersInCsv = [];
+        let groups = {};
+        let globalModelTargets = {};
+        let sessionInfo = "Ready";
+        let expandedLedgers = new Set();
+        let lockedGroupId = null;
+
+        const STORAGE_KEY = 'LOST_MEDIA_IRONCLAD_V40';
+
+        window.onload = () => {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                const data = JSON.parse(saved);
+                groups = data.groups || {};
+                globalModelTargets = data.targets || {};
+                rawData = data.rawData || [];
+                sessionInfo = data.sessionInfo || "Restored Session";
+                document.getElementById('masterTargetInput').value = data.targetText || "";
+                document.getElementById('unassignedToggle').checked = data.showLeak || false;
+                processChatterPool();
+                updateSessionBadge(sessionInfo, "text-emerald-400");
+                renderAll();
+            } else {
+                updateSessionBadge("Awaiting Data", "text-slate-500");
+                renderReportPlaceholder();
+            }
+        };
+
+        function saveToStorage() {
+            const data = {
+                groups,
+                targets: globalModelTargets,
+                rawData,
+                sessionInfo,
+                targetText: document.getElementById('masterTargetInput').value,
+                showLeak: document.getElementById('unassignedToggle').checked
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+
+        function updateSessionBadge(text, colorClass) {
+            const badge = document.getElementById('sessionStatus');
+            badge.innerHTML = text;
+            badge.className = `session-badge uppercase tracking-wider ${colorClass}`;
+        }
+
+        function processChatterPool() {
+            chattersInCsv = [...new Set(rawData.map(d => d.employee))].filter(n => n && n !== 'Unassigned').sort();
+        }
+
+        document.getElementById('csvInput').addEventListener('change', e => {
+            Papa.parse(e.target.files[0], {
+                header: true, skipEmptyLines: true,
+                complete: res => {
+                    rawData = res.data.map(row => ({
+                        time: (row['Date & time Europe/London'] || '').split(' ')[1] || '00:00',
+                        employee: (row['Employee'] || '').trim(),
+                        creator: (row['Creator'] || 'Unknown').trim(),
+                        fan: (row['Fan'] || 'Guest').trim(),
+                        type: (row['Type'] || 'Other').toLowerCase(),
+                        net: parseFloat((row['Net revenue'] || '0').replace(/[$,]/g, '')) || 0
+                    }));
+                    processChatterPool();
+                    sessionInfo = `LIVE: ${new Date().toLocaleTimeString()}`;
+                    updateSessionBadge(sessionInfo, "text-rose-500");
+                    renderAll();
+                    saveToStorage();
+                }
+            });
+        });
+
+        function parseMasterTargets() {
+            const lines = document.getElementById('masterTargetInput').value.split('\n');
+            globalModelTargets = {};
+            lines.forEach(line => {
+                if(line.includes('$')) {
+                    const parts = line.split('$');
+                    const name = parts[0].split('@')[0].trim().toLowerCase();
+                    const amt = parseFloat(parts[1].replace(/,/g, ''));
+                    if(name && !isNaN(amt)) globalModelTargets[name] = amt;
+                }
+            });
+            renderAll();
+            saveToStorage();
+        }
+
+        function exportSnapshot() {
+            const snapshot = { groups, targets: globalModelTargets, rawData, sessionInfo, targetText: document.getElementById('masterTargetInput').value };
+            const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `LM-Snapshot-${Date.now()}.json`;
+            a.click();
+        }
+
+        function importSnapshot(e) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const data = JSON.parse(event.target.result);
+                groups = data.groups; globalModelTargets = data.targets; rawData = data.rawData;
+                sessionInfo = `Imported: ${data.sessionInfo}`;
+                document.getElementById('masterTargetInput').value = data.targetText || "";
+                processChatterPool();
+                renderAll();
+                saveToStorage();
+                updateSessionBadge(sessionInfo, "text-emerald-400");
+            };
+            reader.readAsText(e.target.files[0]);
+        }
+
+        function addGroup() {
+            const n = prompt("Manager Name:"); if(!n) return;
+            const id = 'grp_' + Date.now(); groups[id] = { name: n, members: [] };
+            lockedGroupId = id; renderAll(); saveToStorage();
+        }
+
+        function toggleChatter(name) {
+            if(!lockedGroupId) return alert("Select a manager (Lock) first!");
+            const g = groups[lockedGroupId];
+            g.members = g.members.includes(name) ? g.members.filter(m => m !== name) : [...g.members, name];
+            renderAll(); saveToStorage();
+        }
+
+        function renderAll() {
+            renderGroupUI(); renderPool(); renderReport();
+        }
+
+        function renderGroupUI() {
+            const box = document.getElementById('groupList');
+            box.innerHTML = Object.keys(groups).map(id => {
+                const isL = lockedGroupId === id;
+                return `<div class="p-4 rounded-xl border border-slate-700 cursor-pointer ${isL ? 'locked-group' : 'bg-black/20'}" onclick="lockedGroupId = (lockedGroupId === '${id}') ? null : '${id}'; renderAll();">
+                    <div class="flex justify-between items-center text-[11px] font-bold uppercase">
+                        <span class="${isL ? 'text-rose-500' : 'text-slate-300'}">${isL ? '🔒 ' : ''}${groups[id].name}</span>
+                        <button onclick="event.stopPropagation(); delete groups['${id}']; renderAll(); saveToStorage();" class="text-slate-600">×</button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function renderPool() {
+            const term = document.getElementById('poolSearch').value.toLowerCase();
+            const assigned = []; Object.values(groups).forEach(g => assigned.push(...g.members));
+            document.getElementById('chatterPool').innerHTML = chattersInCsv.filter(n => n.toLowerCase().includes(term)).map(n => `<div onclick="toggleChatter('${n}')" class="chatter-pill px-4 py-2 rounded-xl uppercase ${assigned.includes(n) ? 'opacity-20 pointer-events-none' : 'text-slate-400'}">${n}</div>`).join('');
+        }
+
+        function renderReport() {
+            const area = document.getElementById('reportArea');
+            if(rawData.length === 0) return renderReportPlaceholder();
+            const incUn = document.getElementById('unassignedToggle').checked;
+            let html = '';
+            Object.values(groups).forEach(group => {
+                if(group.members.length === 0) return;
+                let gTotal = 0;
+                let sHtml = group.members.map(name => {
+                    const cData = rawData.filter(d => d.employee === name);
+                    const models = [...new Set(cData.map(d => d.creator))];
+                    let sTotal = cData.reduce((s, r) => s + r.net, 0);
+                    if (incUn) models.forEach(m => sTotal += rawData.filter(d => (d.employee === '' || d.employee === 'Unassigned') && d.creator === m).reduce((s, r) => s + r.net, 0));
+                    gTotal += sTotal;
+                    return renderStaffCard(name, cData, incUn);
+                }).join('');
+                html += `<div class="mb-16"><div class="flex justify-between items-end border-b-2 border-rose-600 pb-4 mb-8"><h3 class="text-4xl font-black text-white uppercase">${group.name}</h3><div class="text-4xl font-bold text-white font-mono">$${gTotal.toLocaleString(undefined, {minimumFractionDigits: 2})}</div></div><div class="staff-grid">${sHtml}</div></div>`;
+            });
+            area.innerHTML = html;
+        }
+
+        function renderStaffCard(name, cData, incUn) {
+            const models = [...new Set(cData.map(d => d.creator))];
+            let displayTotal = cData.reduce((s, r) => s + r.net, 0);
+            if(incUn) models.forEach(m => displayTotal += rawData.filter(d => (d.employee === '' || d.employee === 'Unassigned') && d.creator === m).reduce((s, r) => s + r.net, 0));
+            let target = 0;
+            models.forEach(m => { for(let k in globalModelTargets) { if(m.toLowerCase().includes(k)) { target += globalModelTargets[k]; break; } } });
+            const perc = target > 0 ? (displayTotal / target) * 100 : 0;
+            return `<div class="glass-card p-6 shadow-xl"><div class="flex justify-between items-start mb-5"><div><h4 class="text-2xl font-black text-white uppercase mb-2">${name}</h4><div class="text-goal-label">GOAL: $${target.toLocaleString()}</div></div><div class="text-right"><div class="text-4xl font-black text-rose-500 mb-1">${perc.toFixed(0)}%</div><div class="text-revenue-big">$${displayTotal.toFixed(2)}</div></div></div><div class="h-3 bg-black rounded-full overflow-hidden border border-slate-800 mb-6"><div class="h-full bg-rose-600 shadow-[0_0_15px_#e11d48]" style="width: ${Math.min(perc, 100)}%"></div></div><div class="space-y-4">${models.map(m => renderModelRow(name, m, cData, incUn)).join('')}</div></div>`;
+        }
+
+        function renderModelRow(cN, mN, all, incUn) {
+            const mSales = all.filter(d => d.creator === mN);
+            const uSales = rawData.filter(d => (d.employee === '' || d.employee === 'Unassigned') && d.creator === mN);
+            const total = mSales.reduce((s, r) => s + r.net, 0) + (incUn ? uSales.reduce((s, r) => s + r.net, 0) : 0);
+            const key = `${cN}-${mN}`;
+            const isEx = expandedLedgers.has(key);
+            return `<div class="bg-black/50 p-4 rounded-xl border border-slate-800/50"><div class="flex justify-between items-center mb-3"><span class="text-model-name">${mN}</span><span class="text-xl font-bold text-white font-mono">$${total.toFixed(2)}</span></div><button onclick="expandedLedgers.has('${key}')?expandedLedgers.delete('${key}'):expandedLedgers.add('${key}'); renderAll();" class="w-full py-2 text-[10px] font-bold uppercase text-slate-400 bg-white/5 rounded-lg border border-white/10 hover:bg-rose-600 hover:text-white transition-all">${isEx ? 'Hide Details' : 'View Ledger'}</button><div class="${isEx ? 'block' : 'hidden'} mt-4 space-y-1.5 max-h-[200px] overflow-y-auto pr-2">${[...mSales, ...(incUn ? uSales : [])].sort((a,b) => b.time.localeCompare(a.time)).map(s => {
+                const type = s.type.includes('tip') ? 'type-tip' : (s.type.includes('message') ? 'type-msg' : 'bg-slate-700');
+                return `<div class="flex justify-between items-center text-[11px] py-1.5 border-b border-white/5"><div class="flex items-center gap-3"><span class="type-icon ${type}">${s.type.includes('tip')?'TIP':'MSG'}</span><span class="text-slate-200 uppercase truncate max-w-[120px] font-semibold">${s.fan}</span></div><span class="${(s.employee===''||s.employee==='Unassigned') ? 'text-rose-400' : 'text-emerald-500'} font-bold">$${s.net.toFixed(2)}</span></div>`;
+            }).join('')}</div></div>`;
+        }
+
+        function renderReportPlaceholder() { document.getElementById('reportArea').innerHTML = `<div class="glass-card p-40 text-center text-slate-700 font-black uppercase tracking-widest text-xl border-dashed border-2 border-slate-800">System Ready. Load Sales to Begin.</div>`; }
+        function handleSearch(e) { if (e.key === 'Enter') { const term = e.target.value.toLowerCase(); document.querySelectorAll('[data-search-key]').forEach(el => { el.classList.remove('ring-4', 'ring-rose-600'); if (term && el.getAttribute('data-search-key').includes(term)) { el.classList.add('ring-4', 'ring-rose-600'); el.scrollIntoView({ behavior: 'smooth', block: 'center' }); } }); } }
+        function clearEverything() { if(confirm("Wipe all locally saved data?")) { localStorage.removeItem(STORAGE_KEY); location.reload(); } }
+    </script>
+</body>
+</html>
