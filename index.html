@@ -260,25 +260,36 @@
             for(let k in globalModelTargets) { if(mN.toLowerCase().includes(k)) { modelTarget = globalModelTargets[k]; break; } }
             const perc = modelTarget > 0 ? (total / modelTarget) * 100 : 0;
             
+            // Percentage Color Logic
+            let percColor = "text-rose-500"; // Red
+            let barColor = "bg-rose-600";
+            if (perc >= 100) {
+                percColor = "text-emerald-400"; // Green
+                barColor = "bg-emerald-500";
+            } else if (perc >= 50) {
+                percColor = "text-yellow-400"; // Yellow
+                barColor = "bg-yellow-500";
+            }
+
             const key = `${cN}-${mN}`;
             const isEx = expandedLedgers.has(key);
 
-            return `<div class="bg-black/40 p-4 rounded-xl border border-slate-800/50">
-                <div class="flex justify-between items-start mb-2">
+            return `<div class="bg-black/40 p-5 rounded-xl border border-slate-800/50">
+                <div class="flex justify-between items-start mb-3">
                     <div>
                         <div class="text-model-name mb-1">${mN}</div>
-                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
-                            Target: <span class="text-emerald-400">$${modelTarget.toLocaleString()}</span>
+                        <div class="text-[11px] font-bold text-slate-400 uppercase tracking-tighter">
+                            Target: <span class="text-slate-200">$${modelTarget.toLocaleString()}</span>
                         </div>
                     </div>
                     <div class="text-right">
-                        <div class="text-xl font-bold text-white font-mono leading-none">$${total.toFixed(2)}</div>
-                        <div class="text-[11px] font-black text-rose-500 mt-1">${perc.toFixed(1)}%</div>
+                        <div class="text-2xl font-black ${percColor} leading-none mb-1">${perc.toFixed(1)}%</div>
+                        <div class="text-lg font-bold text-white font-mono opacity-80">$${total.toFixed(2)}</div>
                     </div>
                 </div>
                 
-                <div class="h-1.5 bg-black rounded-full overflow-hidden border border-slate-800 mb-3">
-                    <div class="h-full bg-rose-600 shadow-[0_0_10px_#e11d48]" style="width: ${Math.min(perc, 100)}%"></div>
+                <div class="h-2 bg-black rounded-full overflow-hidden border border-slate-800 mb-4">
+                    <div class="h-full ${barColor} transition-all duration-500 shadow-[0_0_10px_currentColor]" style="width: ${Math.min(perc, 100)}%; color: ${perc >= 100 ? '#10b981' : (perc >= 50 ? '#facc15' : '#e11d48')}"></div>
                 </div>
 
                 <button onclick="expandedLedgers.has('${key}')?expandedLedgers.delete('${key}'):expandedLedgers.add('${key}'); renderAll();" 
@@ -292,7 +303,7 @@
                         return `<div class="flex justify-between items-center text-[10px] py-1 border-b border-white/5">
                             <div class="flex items-center gap-2">
                                 <span class="type-icon ${type}">${s.type.includes('tip')?'TIP':'MSG'}</span>
-                                <span class="text-slate-300 truncate max-w-[100px]">${s.fan}</span>
+                                <span class="text-slate-300 truncate max-w-[100px] font-medium">${s.fan}</span>
                             </div>
                             <span class="${(s.employee===''||s.employee==='Unassigned') ? 'text-rose-400' : 'text-emerald-500'} font-bold">$${s.net.toFixed(2)}</span>
                         </div>`;
@@ -302,7 +313,7 @@
         }
 
         function renderReportPlaceholder() { document.getElementById('reportArea').innerHTML = `<div class="glass-card p-40 text-center text-slate-700 font-black uppercase tracking-widest text-xl border-dashed border-2 border-slate-800">System Ready. Load Sales to Begin.</div>`; }
-        function handleSearch(e) { /* existing search logic */ }
+        function handleSearch(e) { /* existing logic */ }
         function clearEverything() { if(confirm("Wipe all locally saved data?")) { localStorage.removeItem(STORAGE_KEY); location.reload(); } }
     </script>
 </body>
